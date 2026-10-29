@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPI - Pecahan (Gorontalo)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome (Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- html2pdf for Report Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Tone.js for Audio/Music -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <!-- MathJax for Math Rendering -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']]
+            },
+            startup: {
+                typeset: false
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        arabic: ['Amiri', 'serif'],
+                    },
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Styles & Animations */
+        body { -webkit-tap-highlight-color: transparent; }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.3); }
+        .fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
+        .slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Floating Slide / Modal Overlay */
+        .modal-overlay { background-color: rgba(6, 78, 59, 0.6); backdrop-filter: blur(4px); }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #ecfdf5; }
+        ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 4px; }
+        
+        /* Interactive Tap-to-Move Styles */
+        .tap-source-active { border: 2px dashed #f59e0b; background-color: #fef3c7; transform: scale(1.05); }
+        .tap-target { border: 2px dashed #10b981; min-height: 50px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .tap-target:hover { background-color: #d1fae5; }
+        
+        /* Hide screens initially */
+        .screen { display: none; }
+        .screen.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+        /* Print Styles */
+        @media print {
+            body * { visibility: hidden; }
+            #report-content, #report-content * { visibility: visible; }
+            #report-content { position: absolute; left: 0; top: 0; width: 100%; padding: 0; margin: 0; }
+            .no-print { display: none !important; }
+        }
+
+        /* SVG Animation */
+        .float-anim { animation: float 3s ease-in-out infinite; }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Animasi Tambahan Cover */
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .anim-spin-slow { animation: spin-slow 15s linear infinite; transform-origin: center; }
+        
+        @keyframes detachPiece {
+            0%, 100% { transform: translate(0px, 0px); }
+            50% { transform: translate(-15px, -15px); }
+        }
+        .anim-detach { animation: detachPiece 3s ease-in-out infinite; }
+        
+        @keyframes float-around {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(15px, -20px) rotate(10deg); }
+            66% { transform: translate(-15px, 15px) rotate(-10deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+        .anim-float-around { animation: float-around 6s ease-in-out infinite; }
+        .anim-float-delayed { animation: float-around 7s ease-in-out infinite 2s; }
+    </style>
+</head>
+<body class="bg-emerald-50 text-gray-800 antialiased overflow-x-hidden selection:bg-emerald-200 selection:text-emerald-900">
+
+    <!-- KONFIGURASI GOOGLE APPS SCRIPT URL -->
+    <script>
+        const GAS_URL = "URL_GAS_ANDA_DISINI";
+    </script>
+
+    <!-- A. SPLASH SCREEN -->
+    <div id="splash-screen" class="screen active bg-gradient-to-br from-blue-700 to-emerald-600 items-center justify-center fixed inset-0 z-50">
+        <div class="text-center slide-up">
+            <img src="https://iili.io/nvQANkb.png" onerror="this.src='https://placehold.co/100x100/10b981/ffffff?text=Logo'" alt="Logo Sekolah" class="w-24 h-24 mx-auto mb-4 float-anim bg-white rounded-full p-1 shadow-lg object-contain">
+            <h1 class="text-4xl font-bold text-white mb-2">Pecahan</h1>
+            <p class="text-emerald-100 text-lg">Literasi & Numerasi Berbasis Cinta</p>
+            <div class="mt-8 flex justify-center">
+                <div class="w-12 h-12 border-4 border-emerald-400 border-t-gold-400 rounded-full animate-spin"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- B. COVER SCREEN -->
+    <div id="cover-screen" class="screen bg-gradient-to-br from-blue-800 via-emerald-600 to-blue-900 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
+        
+        <!-- Background Ornamen Melayang -->
+        <div class="absolute inset-0 pointer-events-none z-0">
+            <div class="absolute top-1/4 left-1/4 text-white/20 text-6xl font-bold anim-float-around">½</div>
+            <div class="absolute top-3/4 left-1/5 text-white/20 text-5xl font-bold anim-float-delayed">¾</div>
+            <div class="absolute top-1/3 right-1/4 text-white/20 text-7xl font-bold anim-float-around" style="animation-delay: 1s;">⅓</div>
+            <div class="absolute bottom-1/4 right-1/3 text-white/20 text-4xl font-bold anim-float-delayed" style="animation-delay: 3s;">⅝</div>
+        </div>
+
+        <div class="flex-1 flex flex-col items-center justify-center p-6 z-10 relative">
+            <img src="https://iili.io/nvQANkb.png" onerror="this.src='https://placehold.co/100x100/10b981/ffffff?text=Logo'" alt="Logo Sekolah" class="w-24 h-24 bg-white rounded-full p-2 shadow-xl relative z-10 mb-4 object-contain">
+            <div class="bg-white/20 px-4 py-1 rounded-full text-emerald-50 text-sm font-semibold mb-6 backdrop-blur-sm mt-2">
+                Matematika | Kelas VII (Fase D)
+            </div>
+            <h1 class="text-5xl md:text-7xl font-bold text-white mb-8 text-center drop-shadow-lg">PECAHAN</h1>
+            
+            <!-- Visual / Animasi SVG Utama -->
+            <div class="w-64 h-64 mb-10 float-anim relative z-10">
+                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-2xl">
+                    <circle cx="100" cy="100" r="90" fill="rgba(255,255,255,0.2)" />
+                    <g class="anim-spin-slow">
+                        <path d="M100 100 L100 10 A90 90 0 0 1 190 100 Z" fill="#fbbf24" />
+                        <path d="M100 100 L190 100 A90 90 0 0 1 100 190 Z" fill="#f59e0b" />
+                        <path d="M100 100 L100 190 A90 90 0 0 1 10 100 Z" fill="#10b981" />
+                    </g>
+                    <path d="M100 100 L100 10 A90 90 0 0 0 10 100 Z" fill="#34d399" class="anim-detach" />
+                    <circle cx="100" cy="100" r="35" fill="white" class="drop-shadow-lg" />
+                    <text x="100" y="110" font-size="28" font-weight="bold" fill="#064e3b" text-anchor="middle">¾</text>
+                </svg>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+                <button onclick="toggleModal('modal-dev')" class="flex-1 bg-white/10 hover:bg-white/20 text-white border border-white/30 py-3 px-4 rounded-xl font-medium transition-all backdrop-blur-md">
+                    <i class="fas fa-user-tie mr-2"></i> Pengembang
+                </button>
+                <button onclick="toggleModal('modal-obj')" class="flex-1 bg-white/10 hover:bg-white/20 text-white border border-white/30 py-3 px-4 rounded-xl font-medium transition-all backdrop-blur-md">
+                    <i class="fas fa-bullseye mr-2"></i> Tujuan
+                </button>
+            </div>
+            <button onclick="navTo('input-screen')" class="mt-4 w-full max-w-md bg-gold-500 hover:bg-gold-400 text-emerald-900 py-4 px-6 rounded-xl font-bold text-lg shadow-lg transform hover:scale-105 transition-all">
+                M U L A I <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL: INFO PENGEMBANG -->
+    <div id="modal-dev" class="fixed inset-0 z-50 hidden modal-overlay items-center justify-center p-4">
+        <div class="glass w-full max-w-sm rounded-2xl p-6 text-center slide-up relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-24 bg-emerald-600 pointer-events-none"></div>
+            <img src="https://iili.io/nvQlqnj.jpg" onerror="this.src='https://iili.io/nvQlqnj.png'; this.onerror=function(){this.src='https://placehold.co/100x100/10b981/ffffff?text=SI'};" alt="Pengembang" class="w-24 h-24 rounded-full border-4 border-white shadow-lg mx-auto relative z-10 mt-8 object-cover bg-white">
+            <h2 class="text-xl font-bold text-gray-800 mt-4">SOFRIYANTO ISMAIL, S.Pd</h2>
+            <p class="text-emerald-600 font-medium mb-1">MTs Alkhairaat Tilamuta</p>
+            <p class="text-sm text-gray-500 mb-6"><i class="fas fa-envelope mr-1"></i> sofriyantoismail@gmail.com</p>
+            <button onclick="toggleModal('modal-dev')" class="w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-800 py-2 rounded-lg font-medium transition-colors">Kembali ke Cover</button>
+        </div>
+    </div>
+
+    <!-- MODAL: TUJUAN PEMBELAJARAN -->
+    <div id="modal-obj" class="fixed inset-0 z-50 hidden modal-overlay items-center justify-center p-4">
+        <div class="glass w-full max-w-lg rounded-2xl p-6 slide-up">
+            <h2 class="text-xl font-bold text-emerald-800 mb-4 border-b-2 border-emerald-200 pb-2"><i class="fas fa-bullseye text-gold-500 mr-2"></i> Tujuan Pembelajaran</h2>
+            <ol class="list-decimal list-inside text-gray-700 space-y-2 mb-4 text-sm md:text-base">
+                <li>Peserta didik mampu membaca, menulis dan membandingkan bilangan pecahan.</li>
+                <li>Peserta didik mampu menerapkan operasi penjumlahan dan pengurangan bilangan bulat (diintegrasikan pada konteks rasional/pecahan).</li>
+            </ol>
+            <div class="bg-emerald-50 p-4 rounded-xl mb-4 border border-emerald-100">
+                <p class="font-arabic text-xl text-right mb-2 leading-loose" dir="rtl">إِنَّ رَبَّكَ يَعْلَمُ أَنَّكَ تَقُومُ أَدْنَىٰ مِنْ ثُلُثَيِ اللَّيْلِ وَنِصْفَهُ وَثُلُثَهُ</p>
+                <p class="text-xs text-gray-600 italic">"Sesungguhnya Tuhanmu mengetahui bahwasanya kamu berdiri (sembahyang) kurang dari dua pertiga malam, atau seperdua malam atau sepertiganya..." (QS. Al-Muzzammil: 20)</p>
+            </div>
+            <div class="bg-blue-50 p-3 rounded-lg text-sm text-blue-800 mb-6 border border-blue-100">
+                <i class="fas fa-heart text-red-500 mr-1"></i> <strong>Kurikulum Berbasis Cinta:</strong> Pembelajaran ini ditujukan agar kita mencintai ilmu Allah, merawat alam (Teluk Tomini & Danau Limboto), dan menebar kasih sayang kepada sesama.
+            </div>
+            <button onclick="toggleModal('modal-obj')" class="w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-800 py-2 rounded-lg font-medium transition-colors">Kembali ke Cover</button>
+        </div>
+    </div>
+
+    <!-- MODAL: REFERENSI -->
+    <div id="modal-referensi" class="fixed inset-0 z-50 hidden modal-overlay items-center justify-center p-4">
+        <div class="glass w-full max-w-lg rounded-2xl p-6 slide-up max-h-[80vh] overflow-y-auto">
+            <h2 class="text-xl font-bold text-emerald-800 mb-4 border-b-2 border-emerald-200 pb-2"><i class="fas fa-book text-gold-500 mr-2"></i> Referensi & Sumber Belajar</h2>
+            <ul class="list-disc list-inside text-gray-700 space-y-3 mb-6 text-sm md:text-base">
+                <li>Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi. (2022). <em>Buku Panduan Guru Matematika untuk SMP/MTs Kelas VII</em>.</li>
+                <li>Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi. (2022). <em>Matematika untuk SMP/MTs Kelas VII</em>.</li>
+                <li>Kementerian Agama Republik Indonesia. (2022). <em>Panduan Implementasi Kurikulum Merdeka pada Madrasah (KMA 347 Tahun 2022)</em>.</li>
+                <li>Al-Qur'an dan Terjemahannya.</li>
+                <li>Bahan ajar kontekstual kearifan lokal Provinsi Gorontalo.</li>
+            </ul>
+            <button onclick="toggleModal('modal-referensi')" class="w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-800 py-2 rounded-lg font-medium transition-colors">Tutup</button>
+        </div>
+    </div>
+
+    <!-- CUSTOM ALERT MODAL -->
+    <div id="modal-alert" class="fixed inset-0 z-[60] hidden modal-overlay items-center justify-center p-4">
+        <div class="glass w-full max-w-sm rounded-2xl p-6 text-center slide-up">
+            <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2 id="alert-title" class="text-lg font-bold text-gray-800 mb-2">Peringatan</h2>
+            <p id="alert-msg" class="text-gray-600 mb-6">Pesan peringatan.</p>
+            <button onclick="toggleModal('modal-alert')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg font-medium transition-colors">Mengerti</button>
+        </div>
+    </div>
+
+    <!-- C. FORM INPUT IDENTITAS -->
+    <div id="input-screen" class="screen bg-emerald-50 relative justify-center p-6">
+        <div class="max-w-md w-full mx-auto glass p-8 rounded-2xl shadow-xl slide-up border-t-4 border-emerald-500">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-emerald-800">Data Diri Siswa</h2>
+                <p class="text-sm text-gray-500">Silakan isi identitasmu sebelum memulai</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
+                    <input type="text" id="student-name" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" placeholder="Contoh: Ahmad Abdullah">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+                    <select id="student-class" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all">
+                        <option value="">-- Pilih Kelas --</option>
+                        <option value="VII A">VII A</option>
+                        <option value="VII B">VII B</option>
+                        <option value="VII C">VII C</option>
+                        <option value="VII D">VII D</option>
+                    </select>
+                </div>
+                <button onclick="login()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold mt-4 shadow-md transition-colors">
+                    Masuk <i class="fas fa-sign-in-alt ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- D. PANDUAN / GUIDE SCREEN -->
+    <div id="guide-screen" class="screen bg-white">
+        <div class="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4 md:p-8">
+            <div class="text-center mb-6 slide-up">
+                <h2 class="text-3xl font-bold text-emerald-800">Selamat Datang, <span id="display-name" class="text-gold-500">Siswa</span>!</h2>
+                <p class="text-gray-600">Mari belajar Pecahan bersama kurikulum berbasis cinta.</p>
+            </div>
+            
+            <div class="flex-1 relative bg-emerald-50 rounded-2xl shadow-inner p-6 md:p-10 border border-emerald-100 flex flex-col justify-center items-center text-center slide-up">
+                <div id="guide-1" class="guide-slide">
+                    <img src="https://placehold.co/200x150/10b981/fff?text=Langkah+1" class="mx-auto rounded-xl shadow-md mb-6" alt="Step 1">
+                    <h3 class="text-xl font-bold text-emerald-700 mb-2">1. Belajar Tahap Demi Tahap</h3>
+                    <p class="text-gray-600">Menu akan terbuka secara berurutan. Kamu harus menyelesaikan materi <strong>BELAJAR</strong> terlebih dahulu sebelum bisa <strong>BERMAIN</strong>.</p>
+                </div>
+                <div id="guide-2" class="guide-slide hidden">
+                    <img src="https://placehold.co/200x150/f59e0b/fff?text=Langkah+2" class="mx-auto rounded-xl shadow-md mb-6" alt="Step 2">
+                    <h3 class="text-xl font-bold text-emerald-700 mb-2">2. Interaksi & Konteks Lokal</h3>
+                    <p class="text-gray-600">Jawab tantangan di setiap akhir materi. Kita akan mengeksplorasi matematika melalui keindahan pesisir Teluk Tomini dan Danau Limboto!</p>
+                </div>
+                <div id="guide-3" class="guide-slide hidden">
+                    <img src="https://placehold.co/200x150/3b82f6/fff?text=Langkah+3" class="mx-auto rounded-xl shadow-md mb-6" alt="Step 3">
+                    <h3 class="text-xl font-bold text-emerald-700 mb-2">3. Evaluasi & Laporan PDF</h3>
+                    <p class="text-gray-600">Terakhir, kerjakan soal asesmen di menu <strong>BERLATIH</strong>. Hasil kerjamu akan dicetak dalam bentuk PDF resmi dan tersimpan otomatis!</p>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-6">
+                <button id="btn-guide-prev" onclick="changeGuide(-1)" class="px-6 py-2 rounded-lg font-medium text-emerald-700 bg-emerald-100 hidden">Kembali</button>
+                <div class="flex-1"></div>
+                <button id="btn-guide-next" onclick="changeGuide(1)" class="px-6 py-2 rounded-lg font-medium text-white bg-emerald-600 hover:bg-emerald-700">Selanjutnya</button>
+                <button id="btn-guide-finish" onclick="navTo('main-menu')" class="px-6 py-2 rounded-lg font-medium text-emerald-900 bg-gold-400 hover:bg-gold-500 hidden">Masuk ke Menu Utama</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- E. MAIN MENU (DASHBOARD TERKUNCI) -->
+    <div id="main-menu" class="screen bg-gray-50">
+        <header class="bg-emerald-700 text-white p-4 shadow-md sticky top-0 z-20">
+            <div class="max-w-5xl mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm font-bold border border-white/50">
+                        <span id="header-initial">S</span>
+                    </div>
+                    <div>
+                        <h2 id="header-name" class="font-bold text-sm md:text-base leading-tight">Nama Siswa</h2>
+                        <p id="header-class" class="text-xs text-emerald-200">Kelas VII</p>
+                    </div>
+                </div>
+                <div class="text-xs md:text-sm font-medium bg-emerald-900/50 px-3 py-1 rounded-full border border-emerald-500/50">
+                    <i class="fas fa-map-marker-alt text-red-400 mr-1"></i> Gorontalo
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 flex flex-col justify-center">
+            <h2 class="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8">Peta Perjalanan Belajarmu</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Menu Belajar -->
+                <div onclick="startBelajar()" class="bg-white rounded-2xl shadow-lg border-b-4 border-emerald-500 p-6 cursor-pointer transform hover:-translate-y-1 transition-all group">
+                    <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-center text-gray-800 mb-2">1. BELAJAR</h3>
+                    <p class="text-sm text-gray-500 text-center mb-4">Pahami konsep pecahan dengan nilai cinta dan alam sekitar.</p>
+                    <div class="text-center">
+                        <span class="inline-block bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold"><i class="fas fa-unlock mr-1"></i> TERBUKA</span>
+                    </div>
+                    <div class="mt-4 w-full bg-gray-200 rounded-full h-2">
+                        <div id="progress-belajar" class="bg-emerald-500 h-2 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Menu Bermain -->
+                <div onclick="startBermain()" id="card-bermain" class="bg-white rounded-2xl shadow-md border-b-4 border-gray-300 p-6 cursor-pointer opacity-70 transition-all">
+                    <div class="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-4" id="icon-bermain">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-center text-gray-800 mb-2">2. BERMAIN</h3>
+                    <p class="text-sm text-gray-500 text-center mb-4">Selesaikan 10 tantangan seru berbasis literasi budaya lokal.</p>
+                    <div class="text-center" id="status-bermain">
+                        <span class="inline-block bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-xs font-bold"><i class="fas fa-lock mr-1"></i> TERKUNCI</span>
+                    </div>
+                </div>
+
+                <!-- Menu Berlatih -->
+                <div onclick="startBerlatih()" id="card-berlatih" class="bg-white rounded-2xl shadow-md border-b-4 border-gray-300 p-6 cursor-pointer opacity-70 transition-all">
+                    <div class="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-4" id="icon-berlatih">
+                        <i class="fas fa-pen-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-center text-gray-800 mb-2">3. BERLATIH</h3>
+                    <p class="text-sm text-gray-500 text-center mb-4">Uji kemampuanmu dengan latihan soal berjenjang level HOTS.</p>
+                    <div class="text-center" id="status-berlatih">
+                        <span class="inline-block bg-gray-200 text-gray-600 px-3 py-1 rounded-full text-xs font-bold"><i class="fas fa-lock mr-1"></i> TERKUNCI</span>
+                    </div>
+                </div>
+
+                <!-- Menu Referensi -->
+                <div onclick="toggleModal('modal-referensi')" class="bg-white rounded-2xl shadow-lg border-b-4 border-emerald-500 p-6 cursor-pointer transform hover:-translate-y-1 transition-all group">
+                    <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-bookmark"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-center text-gray-800 mb-2">4. REFERENSI</h3>
+                    <p class="text-sm text-gray-500 text-center mb-4">Daftar pustaka dan sumber belajar yang digunakan dalam materi.</p>
+                    <div class="text-center">
+                        <span class="inline-block bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold"><i class="fas fa-unlock mr-1"></i> TERBUKA</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- F. SCREEN BELAJAR -->
+    <div id="belajar-screen" class="screen bg-white relative">
+        <div class="bg-emerald-700 text-white p-3 flex justify-between items-center shadow-md sticky top-0 z-30">
+            <button onclick="navTo('main-menu')" class="px-3 py-1 rounded bg-white/20 hover:bg-white/30 text-sm font-medium backdrop-blur-sm"><i class="fas fa-home mr-1"></i> Menu</button>
+            <div class="font-semibold text-sm">Materi: <span id="materi-counter">1/7</span></div>
+            <button id="btn-audio" onclick="toggleAudio()" class="px-3 py-1 rounded bg-gold-500 hover:bg-gold-400 text-emerald-900 text-sm font-bold shadow-sm transition-colors w-32 flex justify-center items-center"><i class="fas fa-volume-up mr-1"></i> Audio</button>
+        </div>
+
+        <div class="flex-1 max-w-3xl w-full mx-auto p-4 md:p-6 pb-32" id="belajar-content-area"></div>
+
+        <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-20">
+            <div class="max-w-3xl mx-auto flex justify-between items-center">
+                <button id="btn-materi-prev" onclick="changeMateri(-1)" class="px-5 py-2 rounded-lg font-medium text-emerald-700 bg-emerald-50 border border-emerald-200">Sebelumnya</button>
+                <button id="btn-materi-next" onclick="changeMateri(1)" class="px-5 py-2 rounded-lg font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed">Selanjutnya</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- G. SCREEN BERMAIN -->
+    <div id="bermain-screen" class="screen bg-emerald-50">
+        <div class="bg-gold-500 text-emerald-900 p-3 flex justify-between items-center shadow-md sticky top-0 z-30">
+            <button onclick="navTo('main-menu')" class="px-3 py-1 rounded bg-white/20 hover:bg-white/30 text-sm font-bold"><i class="fas fa-times"></i> Keluar</button>
+            <div class="font-bold text-sm">Tantangan: <span id="bermain-counter">1/10</span></div>
+            <div class="text-sm font-bold bg-white/30 px-2 py-1 rounded">Skor: <span id="bermain-live-score">0</span></div>
+        </div>
+        
+        <div class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 pb-32" id="bermain-content-area"></div>
+        
+        <div class="fixed bottom-0 left-0 w-full bg-white p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-20 hidden" id="bermain-feedback-bar">
+            <div class="max-w-4xl mx-auto flex justify-between items-center">
+                <div id="bermain-feedback-text" class="font-bold text-lg"></div>
+                <button id="btn-bermain-next" onclick="nextBermain()" class="px-6 py-2 rounded-lg font-bold text-white bg-emerald-600">Lanjut <i class="fas fa-chevron-right ml-1"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- H. SCREEN BERLATIH -->
+    <div id="berlatih-screen" class="screen bg-blue-50">
+         <div class="bg-blue-700 text-white p-3 flex justify-between items-center shadow-md sticky top-0 z-30">
+            <button onclick="confirmExitBerlatih()" class="px-3 py-1 rounded bg-white/20 hover:bg-white/30 text-sm font-medium"><i class="fas fa-times"></i> Keluar</button>
+            <div class="font-bold text-sm">Berlatih: <span id="berlatih-counter">1/10</span></div>
+            <div class="text-xs bg-white/20 px-2 py-1 rounded" id="berlatih-badge-level">Level 1</div>
+        </div>
+        
+        <div class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 pb-32" id="berlatih-content-area"></div>
+
+        <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-20">
+            <div class="max-w-4xl mx-auto flex justify-between items-center">
+                <button id="btn-berlatih-prev" onclick="navBerlatih(-1)" class="px-5 py-2 rounded-lg font-medium text-blue-700 bg-blue-50 border border-blue-200">Kembali</button>
+                <button id="btn-berlatih-next" onclick="navBerlatih(1)" class="px-5 py-2 rounded-lg font-medium text-white bg-blue-600 hover:bg-blue-700">Selanjutnya</button>
+                <button id="btn-berlatih-submit" onclick="submitBerlatih()" class="px-5 py-2 rounded-lg font-bold text-white bg-emerald-600 hover:bg-emerald-700 hidden">Selesai & Kumpulkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- I. SCREEN LAPORAN (PDF) -->
+    <div id="report-screen" class="screen bg-gray-100 py-8">
+        <div class="max-w-3xl w-full mx-auto">
+            <div class="flex justify-between mb-4 px-4 no-print">
+                <button onclick="navTo('main-menu')" class="bg-gray-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-700"><i class="fas fa-home mr-1"></i> Beranda</button>
+                <button onclick="downloadPDF()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-emerald-700 shadow-md"><i class="fas fa-file-pdf mr-1"></i> Unduh / Cetak Laporan PDF</button>
+            </div>
+
+            <div id="report-content" class="bg-white p-8 md:p-12 shadow-2xl rounded-xl">
+                <div class="border-b-4 border-emerald-700 pb-4 mb-6 flex items-center justify-between">
+                    <div class="flex items-center">
+                        <img src="https://iili.io/nvQANkb.png" onerror="this.src='https://placehold.co/100x100/10b981/ffffff?text=Logo'" alt="Logo Sekolah" class="w-20 h-20 rounded-full border-2 border-emerald-500 mr-4 p-1 bg-white object-contain">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800 uppercase tracking-wider">Laporan Hasil Belajar MPI</h1>
+                            <p class="text-emerald-700 font-bold">Matematika - Materi Pecahan</p>
+                            <p class="text-sm text-gray-500 mt-1">Kurikulum Kemenag Berbasis Cinta - Integrasi Kearifan Lokal Gorontalo</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <img src="https://iili.io/nvQlqnj.jpg" onerror="this.src='https://iili.io/nvQlqnj.png'; this.onerror=function(){this.style.display='none'};" class="w-16 h-16 rounded-full border border-gray-300 ml-auto mb-1">
+                        <p class="text-xs font-bold text-gray-700">Oleh: SOFRIYANTO ISMAIL, S.Pd</p>
+                        <p class="text-xs text-gray-500">MTs Alkhairaat Tilamuta</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6 bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+                    <div>
+                        <p class="text-xs text-gray-500 font-medium">Nama Siswa:</p>
+                        <p class="text-lg font-bold text-gray-800" id="rep-name">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 font-medium">Kelas:</p>
+                        <p class="text-lg font-bold text-gray-800" id="rep-class">-</p>
+                    </div>
+                    <div class="col-span-2">
+                        <p class="text-xs text-gray-500 font-medium">Tanggal Pengerjaan:</p>
+                        <p class="text-sm font-medium text-gray-800" id="rep-date">-</p>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-bold text-gray-800 mb-2 border-l-4 border-gold-500 pl-2">Rekapitulasi BERMAIN (Gamifikasi)</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-600">Tantangan Diselesaikan:</p>
+                        <p class="text-xl font-bold text-gray-800">10 / 10</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm text-gray-600">Total Poin Tantangan:</p>
+                        <p class="text-3xl font-bold text-gold-500" id="rep-bermain-score">0</p>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-bold text-gray-800 mb-2 border-l-4 border-blue-500 pl-2">Rincian BERLATIH</h3>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                    <div class="flex justify-between items-end border-b border-gray-200 pb-4 mb-4">
+                        <div>
+                            <p class="text-sm text-gray-600">Nilai Akhir (Skala 100):</p>
+                            <p class="text-4xl font-bold text-blue-600" id="rep-berlatih-score">0</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-gray-600">Predikat:</p>
+                            <p class="text-2xl font-bold text-emerald-600" id="rep-predikat">LULUS</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
+                        <div class="bg-gray-50 p-3 rounded border text-center">
+                            <p class="text-xs text-gray-500">Level 1 (Dasar)</p>
+                            <p class="font-bold text-gray-800" id="rep-l1">0/3 Benar</p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded border text-center">
+                            <p class="text-xs text-gray-500">Level 2 (Penerapan)</p>
+                            <p class="font-bold text-gray-800" id="rep-l2">0/4 Benar</p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded border text-center">
+                            <p class="text-xs text-gray-500">Level 3 (HOTS)</p>
+                            <p class="font-bold text-gray-800" id="rep-l3">0/3 Benar</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-lg">
+                    <h4 class="font-bold text-emerald-800 mb-1"><i class="fas fa-heart text-red-500 mr-1"></i> Catatan Kurikulum Berbasis Cinta</h4>
+                    <p class="text-sm text-gray-700 italic" id="rep-kbc">"Ananda telah menunjukkan tekad belajar yang kuat. Teruslah tebarkan kasih sayang, cintai alam sekitar Teluk Tomini dan Danau Limboto, serta jadikan ilmu matematika sebagai jalan mendekatkan diri kepada Sang Maha Pencipta."</p>
+                </div>
+                
+                <div class="mt-12 pt-6 text-right">
+                    <p class="text-sm text-gray-600 mb-12">Mengetahui, Guru Mata Pelajaran</p>
+                    <p class="text-base font-bold text-gray-800 underline">SOFRIYANTO ISMAIL, S.Pd</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC & DATA -->
+    <script>
+        function fm(str) {
+            if (typeof str !== 'string') return str;
+            let s = str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            s = s.replace(/\b(\d+)\s+(\d+)\/(\d+)\b/g, '\\($1 \\frac{$2}{$3}\\)');
+            s = s.replace(/\b(\d+)\/(\d+)\b/g, '\\(\\frac{$1}{$2}\\)');
+            return s;
+        }
+
+        let state = {
+            studentName: '',
+            studentClass: '',
+            belajarProgress: 0,
+            bermainUnlocked: false,
+            bermainCompleted: false,
+            berlatihUnlocked: false,
+            berlatihCompleted: false,
+            bermainScore: 0,
+            berlatihScore: 0,
+            berlatihAnswers: new Array(10).fill(null)
+        };
+
+        let currentGuide = 1;
+        let currentMateri = 0;
+        let currentBermain = 0;
+        let currentBerlatih = 0;
+
+        const materiData = [
+            {
+                title: "1. Mengenal Pecahan di Teluk Tomini",
+                theory: "Pecahan adalah bagian dari keseluruhan. Ditulis sebagai a/b, dimana 'a' adalah pembilang (bagian yang diambil) dan 'b' adalah penyebut (jumlah seluruh bagian yang sama).",
+                context: "Nelayan di pesisir Teluk Tomini menangkap ikan tuna besar. Jika seekor tuna dibagi menjadi 4 bagian yang sama besar untuk dijual, maka setiap bagian bernilai 1/4 (satu per empat) dari total ikan tersebut.",
+                kbc: "Berbagi tangkapan ikan dengan tetangga yang membutuhkan adalah wujud cinta kepada sesama manusia dan rasa syukur atas rezeki dari Allah.",
+                quran: { text: "يَا أَيُّهَا الَّذِينَ آمَنُوا أَنفِقُوا مِمَّا رَزَقْنَاكُم", trans: "Hai orang-orang yang beriman, belanjakanlah (di jalan Allah) sebagian dari rezeki yang telah Kami berikan kepadamu... (QS. Al-Baqarah: 254)" },
+                quiz: {
+                    q: "Jika nelayan membagi ikan menjadi 5 bagian sama besar dan memberikan 2 bagian kepada tetangganya, pecahan berapakah yang diberikan?",
+                    options: ["1/5", "2/5", "3/5", "5/2"], correct: 1
+                }
+            },
+            {
+                title: "2. Pecahan Senilai & Jagung Gorontalo",
+                theory: "Pecahan senilai adalah pecahan yang nilainya sama meskipun pembilang dan penyebutnya berbeda. Diperoleh dengan mengalikan/membagi pembilang dan penyebut dengan angka yang sama.",
+                context: "Di dataran agraris Gorontalo, seorang petani memiliki ladang jagung. Ladang A dibagi menjadi 2 petak (1/2 ditanami). Ladang B dibagi 4 petak (2/4 ditanami). Luas lahan yang ditanami jagung di kedua ladang tersebut sebenarnya sama luasnya (1/2 = 2/4).",
+                kbc: "Menjaga kesuburan tanah dengan pertanian ramah lingkungan adalah bentuk cinta dan pelestarian ciptaan Allah di bumi.",
+                quran: { text: "وَهُوَ الَّذِي أَنشَأَ جَنَّاتٍ مَّعْرُوشَاتٍ وَغَيْرَ مَعْرُوشَاتٍ وَالنَّخْلَ وَالزَّرْعَ...", trans: "Dan Dialah yang menjadikan kebun-kebun yang berjunjung dan yang tidak berjunjung, pohon korma, tanam-tanaman yang bermacam-macam buahnya... (QS. Al-An'am: 141)" },
+                quiz: {
+                    q: "Manakah dari pecahan berikut yang senilai dengan 1/3?",
+                    options: ["2/6", "3/8", "1/6", "4/6"], correct: 0
+                }
+            },
+            {
+                title: "3. Membandingkan Pecahan di Danau Limboto",
+                theory: "Untuk membandingkan pecahan berpenyebut sama, bandingkan pembilangnya. Jika penyebutnya berbeda, samakan dahulu penyebutnya atau gunakan perkalian silang.",
+                context: "Masyarakat membersihkan enceng gondok di Danau Limboto. Kelompok I membersihkan 3/8 area, Kelompok II membersihkan 5/8 area. Karena 5 > 3, maka 5/8 lebih besar dari 3/8. Kelompok II membersihkan area yang lebih luas.",
+                kbc: "Gotong royong membersihkan danau menunjukkan cinta tanah air dan komitmen merawat ekosistem yang rapuh demi anak cucu kita.",
+                quran: { text: "وَلَا تُفْسِدُوا فِي الْأَرْضِ بَعْدَ إِصْلَاحِهَا", trans: "Dan janganlah kamu membuat kerusakan di muka bumi, sesudah (Allah) memperbaikinya... (QS. Al-A'raf: 56)" },
+                quiz: {
+                    q: "Bandingkan 1/2 dan 1/4 area yang sudah dibersihkan. Manakah pernyataan yang benar?",
+                    options: ["1/2 < 1/4", "1/2 = 1/4", "1/2 > 1/4", "Tidak bisa dibandingkan"], correct: 2
+                }
+            },
+            {
+                title: "4. Penjumlahan Pecahan & Tradisi Walima",
+                theory: "Jika penyebut sama, cukup jumlahkan pembilangnya. Jika penyebut berbeda, cari KPK (Kelipatan Persekutuan Terkecil) dari penyebut tersebut sebelum menjumlahkan pembilangnya.",
+                context: "Dalam tradisi Walima memperingati Maulid Nabi, ibu membuat kue. Resep kue kolombengi membutuhkan 1/4 kg gula putih dan 2/4 kg gula merah. Total gula yang digunakan adalah 1/4 + 2/4 = 3/4 kg.",
+                kbc: "Tradisi Walima menyatukan warga dalam kebersamaan dan cinta kepada Rasulullah SAW, memupuk nilai kerukunan antar warga Gorontalo.",
+                quran: { text: "قُلْ إِن كُنتُمْ تُحِبُّونَ اللَّهَ فَاتَّبِعُونِي يُحْبِبْكُمُ اللَّهُ", trans: "Katakanlah: 'Jika kamu (benar-benar) mencintai Allah, ikutilah aku, niscaya Allah mengasihi dan mengampuni dosa-dosamu...' (QS. Ali Imran: 31)" },
+                quiz: {
+                    q: "Hasil dari 1/3 + 1/3 adalah...",
+                    options: ["1/6", "2/3", "2/6", "4/3"], correct: 1
+                }
+            },
+            {
+                title: "5. Pengurangan Pecahan",
+                theory: "Sama seperti penjumlahan, penyebut harus disamakan terlebih dahulu. Setelah sama, kurangkan pembilang yang satu dengan pembilang lainnya.",
+                context: "Sebuah desa di pesisir Teluk Tomini memiliki cadangan air bersih sebanyak 4/5 tangki besar. Jika 1/5 tangki dibagikan untuk menyiram tanaman bakau yang baru ditanam, sisa air adalah 4/5 - 1/5 = 3/5 tangki.",
+                kbc: "Merawat tanaman bakau melindungi pantai dari abrasi. Ini adalah wujud cinta nyata terhadap lingkungan pesisir.",
+                quran: { text: "وَأَحْسِن كَمَا أَحْسَنَ اللَّهُ إِلَيْكَ", trans: "...dan berbuat baiklah (kepada orang lain) sebagaimana Allah telah berbuat baik, kepadamu... (QS. Al-Qasas: 77)" },
+                quiz: {
+                    q: "Hasil dari 5/7 - 2/7 adalah...",
+                    options: ["3/7", "7/7", "3/0", "2/7"], correct: 0
+                }
+            },
+            {
+                title: "6. Operasi Bilangan Bulat pada Pecahan (Pecahan Campuran)",
+                theory: "Pecahan campuran terdiri dari bilangan bulat dan pecahan biasa (misal 1 1/2). Untuk mengoperasikannya, ubah menjadi pecahan biasa terlebih dahulu.",
+                context: "Seorang petani membawa 2 1/2 karung hasil panen cengkeh dari pegunungan. Dalam perjalanan, ia menyumbangkan 1/2 karung untuk panti asuhan. Sisa panen = 5/2 - 1/2 = 4/2 = 2 karung utuh.",
+                kbc: "Menyumbangkan hasil keringat kita melatih keikhlasan, rasa cinta pada sesama, dan menekan sifat egois.",
+                quran: { text: "لَن تَنَالُوا الْبِرَّ حَتَّىٰ تُنفِقُوا مِمَّا تُحِبُّونَ", trans: "Kamu sekali-kali tidak sampai kepada kebajikan (yang sempurna), sebelum kamu menafkahkan sehahagian harta yang kamu cintai. (QS. Ali Imran: 92)" },
+                quiz: {
+                    q: "Berapa hasil dari 1 1/4 diubah menjadi pecahan biasa?",
+                    options: ["2/4", "3/4", "5/4", "6/4"], correct: 2
+                }
+            },
+            {
+                title: "7. Pemecahan Masalah Sehari-hari",
+                theory: "Matematika pecahan digunakan dalam pembagian harta, zakat, mengukur bahan bangunan, dan resep masakan. Pahami masalah, tentukan operasi hitungnya, lalu selesaikan.",
+                context: "Di sebuah madrasah di Gorontalo, dana infaq dikumpulkan. 1/3 bagian disumbangkan ke panti asuhan, dan 1/3 bagian digunakan untuk membeli bibit pohon untuk madrasah. Total dana yang telah dimanfaatkan adalah 2/3 bagian.",
+                kbc: "Seimbang dalam memperhatikan manusia (sosial) dan alam (ekologi) mencerminkan ajaran Islam rahmatan lil 'alamin.",
+                quran: { text: "إِنَّ رَبَّكَ يَعْلَمُ أَنَّكَ تَقُومُ أَدْنَىٰ مِنْ ثُلُثَيِ اللَّيْلِ وَنِصْفَهُ وَثُلُثَهُ", trans: "Sesungguhnya Tuhanmu mengetahui bahwasanya kamu berdiri (sembahyang) kurang dari dua pertiga malam, atau seperdua malam atau sepertiganya... (QS. Al-Muzzammil: 20)" },
+                quiz: {
+                    q: "Jika 2/3 bagian dana sudah dipakai, berapakah sisa dana tersebut? (Anggap total utuh adalah 1 atau 3/3)",
+                    options: ["1/3", "2/3", "3/3", "4/3"], correct: 0
+                }
+            }
+        ];
+
+        const bermainData = [
+            { type: 'mc', stimulus: "Kawasan Teluk Tomini memiliki kekayaan laut yang luar biasa. Para nelayan setempat baru saja menangkap sejumlah ikan cakalang. Ketua kelompok nelayan memutuskan untuk membagikan hasil tangkapan ini sebagai bentuk rasa syukur (cinta sesama). Keluarga A diberikan 1/4 bagian ikan, keluarga B diberikan 2/8 bagian, dan keluarga C diberikan 3/12 bagian. Masyarakat yang menyaksikan pembagian ini sempat berdebat siapa yang mendapat bagian paling banyak. Sebagai siswa Madrasah yang belajar pecahan senilai, kamu ditugaskan untuk menengahinya dengan ilmu yang tepat.", q: "Berdasarkan cerita di atas, keluarga manakah yang sebenarnya mendapatkan bagian ikan paling banyak?", opts: ["Keluarga A", "Keluarga B", "Keluarga C", "Semua mendapat bagian yang SAMA besar"], ans: 3 },
+            { type: 'mc', stimulus: "Pemerintah Provinsi Gorontalo sedang menggalakkan program konservasi Danau Limboto. Permukaan danau banyak tertutup oleh tanaman eceng gondok. Pada bulan pertama, relawan gabungan yang terdiri dari siswa, TNI, dan warga berhasil membersihkan 2/5 bagian dari area yang ditargetkan. Pada bulan kedua, karena cuaca buruk, mereka hanya mampu membersihkan 1/5 bagian. Semangat pantang menyerah dan cinta alam terus dikobarkan. Mereka ingin mengetahui total area yang telah bersih selama dua bulan tersebut agar bisa melaporkan progresnya kepada gubernur.", q: "Berapa total bagian area yang telah berhasil dibersihkan oleh relawan selama dua bulan tersebut?", opts: ["1/5 bagian", "2/5 bagian", "3/5 bagian", "3/10 bagian"], ans: 2 },
+            { type: 'sort', stimulus: "Empat orang siswa MTs Alkhairaat Tilamuta mengikuti lomba lari mengelilingi lapangan madrasah. Lomba ini tidak hanya menguji fisik, tapi kejujuran dan sportivitas (akhlak terpuji). Pada menit ke-5, panitia mencatat posisi mereka. Ali baru menyelesaikan 1/2 putaran. Budi yang sangat atletis telah menyelesaikan 3/4 putaran. Hasan menyelesaikan 1/4 putaran. Sedangkan Daud menyelesaikan 3/8 putaran. Untuk menentukan urutan juara sementara, panitia harus mengurutkan jarak tempuh mereka dari yang paling dekat hingga yang paling jauh.", q: "Urutkan posisi siswa dari jarak tempuh yang PALING KECIL ke yang PALING BESAR dengan mengetuk namanya secara berurutan!", opts: ["Ali (1/2)", "Budi (3/4)", "Hasan (1/4)", "Daud (3/8)"], correctOrder: [2, 3, 0, 1] },
+            { type: 'mc', stimulus: "Dalam tradisi menyambut bulan suci Ramadan di Gorontalo, warga menyiapkan kue-kue tradisional. Ibu Aminah sedang membuat adonan kue curut. Resep pusaka dari neneknya menuliskan kebutuhan tepung beras sebanyak 1 1/2 kilogram. Namun, timbangan yang dimiliki ibu Aminah hanya memiliki anak timbangan dalam pecahan seperempatan (1/4 kg). Ibu Aminah bingung dan meminta tolong kepadamu untuk menghitung berapa banyak anak timbangan 1/4 kg yang harus dinaikkan ke atas neraca agar setara dengan 1 1/2 kg.", q: "Berapa banyak anak timbangan 1/4 kg yang dibutuhkan Ibu Aminah?", opts: ["4 buah", "5 buah", "6 buah", "7 buah"], ans: 2 },
+            { type: 'mc', stimulus: "Pengelolaan zakat dan sedekah sangat dianjurkan dalam Al-Qur'an sebagai wujud cinta kepada sesama manusia. Pak Rahmat, seorang petani jagung sukses di Gorontalo, menyisihkan 3/8 dari total keuntungan panennya untuk sedekah ke panti asuhan, dan 1/4 dari total keuntungannya untuk pembangunan masjid di desanya. Pak Rahmat ingin menghitung total persentase/pecahan dari keuntungannya yang telah ia keluarkan di jalan Allah.", q: "Berapa total pecahan keuntungan yang dikeluarkan Pak Rahmat untuk sedekah dan masjid? (Petunjuk: samakan penyebutnya!)", opts: ["4/12", "5/8", "4/8", "7/8"], ans: 1 },
+            { type: 'sort', stimulus: "Pemerintah sedang merencanakan penanaman bibit mangrove di sepanjang pesisir Pantai pohon cinta Pohuwato untuk mencegah abrasi laut. Area penanaman dibagi menjadi 4 zona. Zona A ditanami 2/3 bagian, Zona B ditanami 1/6 bagian, Zona C ditanami 5/6 bagian, dan Zona D ditanami 1/2 (atau 3/6) bagian. Gubernur meminta laporan urutan zona mana yang paling hijau (paling banyak ditanami) hingga yang paling sedikit agar anggaran perawatan bulan depan bisa dialokasikan dengan tepat sasaran.", q: "Urutkan zona penanaman dari yang terluas (paling besar) ke yang tersempit (paling kecil)!", opts: ["Zona A (2/3)", "Zona B (1/6)", "Zona C (5/6)", "Zona D (1/2)"], correctOrder: [2, 0, 3, 1] },
+            { type: 'mc', stimulus: "Seorang ilmuwan muslim di Gorontalo sedang meneliti suhu di pegunungan Tilongkabila. Pada pagi hari, ia mencatat suhu sebesar 15 1/2 derajat Celcius. Menjelang siang, suhu naik perlahan dan bertambah sebesar 4 1/2 derajat Celcius karena terik matahari. Namun, saat sore hari turun hujan lebat sehingga suhu mendadak turun sebesar 3 derajat Celcius. Ilmuwan tersebut bersyukur atas rahmat hujan dari Allah dan mencatat suhu akhir di sore hari itu di buku jurnalnya.", q: "Berapakah suhu udara (dalam derajat Celcius) pada sore hari setelah hujan turun?", opts: ["16 derajat", "17 derajat", "18 derajat", "20 derajat"], ans: 1 },
+            { type: 'mc', stimulus: "Seekor burung Maleo, satwa endemik pulau Sulawesi (termasuk Gorontalo), sedang membuat sarang di dalam pasir yang hangat. Burung ini membutuhkan kedalaman pasir tertentu. Pada hari pertama ia menggali pasir sedalam 7/10 meter. Namun di malam hari, angin kencang membawa pasir dan menimbun kembali sarangnya setebal 2/10 meter. Keesokan harinya, burung Maleo yang tangguh itu harus mengetahui berapa sisa kedalaman sarang yang masih terbuka agar bisa melanjutkan pekerjaannya. Kita diajarkan untuk menyayangi hewan dan melindungi habitat mereka.", q: "Berapa sisa kedalaman sarang burung Maleo yang masih terbuka setelah tertimbun pasir?", opts: ["5/10 meter (atau 1/2)", "6/10 meter", "7/20 meter", "9/10 meter"], ans: 0 },
+            { type: 'mc', stimulus: "Di madrasah, guru membagi tugas kelompok. Kelompok 1 mendapat tugas meneliti ekosistem Danau Limboto selama 1 3/4 jam. Kelompok 2 mendapat tugas meneliti sejarah Benteng Otanaha selama 2 1/4 jam. Kepala Madrasah ingin mengetahui selisih waktu penelitian antara kelompok 2 dan kelompok 1. Menghargai waktu adalah salah satu ajaran Islam yang sangat penting, seperti yang tercantum dalam Surah Al-'Asr demi masa.", q: "Berapa selisih waktu (dalam jam) antara kelompok 2 dan kelompok 1?", opts: ["1/4 jam", "1/2 jam", "3/4 jam", "1 jam"], ans: 1 },
+            { type: 'mc', stimulus: "Pak Karim memiliki sebidang tanah warisan di Kabupaten Bone Bolango. Sebagai bentuk rasa cinta dan kepedulian terhadap kemajuan pendidikan agama di desanya, ia mewakafkan 1/3 bagian tanahnya untuk dibangun madrasah diniyah. Ia juga membagikan 2/5 bagian tanahnya kepada anak-anaknya. Sisa tanah yang ada akan ia gunakan sendiri untuk bercocok tanam jagung Binthe Biluhuta. Pak Karim ingin tahu berapa bagian tanah yang tersisa untuk dirinya.", q: "Berapa bagian tanah yang tersisa untuk Pak Karim bercocok tanam? (Petunjuk: Total awal adalah 1 atau utuh)", opts: ["1/15 bagian", "4/15 bagian", "6/15 bagian", "11/15 bagian"], ans: 1 }
+        ];
+
+        const berlatihData = [
+            { lvl: 1, pts: 8, stimulus: "Masyarakat nelayan di pesisir Teluk Tomini menangkap ikan setiap subuh. Hasil tangkapan ini sering dibagi rata. Pada suatu hari, perahu A membawa pulang ikan cakalang yang kemudian dipotong menjadi 6 bagian besar yang sama rata untuk dijual ke pasar. Tiga bagian pertama langsung dibeli oleh pemilik rumah makan ikan bakar langganan. Sebagai bentuk rasa syukur, satu bagian disedekahkan ke fakir miskin. Masyarakat setempat sangat menjunjung tinggi nilai berbagi (cinta sesama).", q: "Pecahan berapakah yang menunjukkan jumlah ikan yang disedekahkan dari total keseluruhan potongan ikan cakalang tersebut?", opts: ["1/3", "1/6", "3/6", "4/6"], ans: 1 },
+            { lvl: 1, pts: 8, stimulus: "Di MTs Alkhairaat Tilamuta, siswa kelas VII belajar matematika sambil mengamati tumbuhan di halaman sekolah. Guru membawa sebuah pepaya yang dipetik dari kebun sekolah. Pepaya itu dipotong menjadi 8 irisan sama besar. Ali memakan 2 irisan, sedangkan Fatimah memakan 3 irisan. Mereka membuang bijinya ke tanah agar tumbuh kembali, sebagai bentuk kecintaan pada kelestarian alam ciptaan Allah. Guru meminta siswa menghitung total pecahan pepaya yang telah dimakan oleh kedua anak tersebut.", q: "Berapa total bagian pepaya yang dimakan oleh Ali dan Fatimah?", opts: ["5/8", "6/8", "1/8", "5/16"], ans: 0 },
+            { lvl: 1, pts: 8, stimulus: "Gorontalo terkenal dengan kain Karawo yang sulamannya sangat indah dan membutuhkan ketelitian tingkat tinggi. Seorang pengrajin Karawo mampu menyelesaikan 2/7 bagian motif pada hari Senin. Pada hari Selasa, karena harus menghadiri acara keluarga, ia hanya mampu menyelesaikan 1/7 bagian motif. Pengrajin tersebut bekerja dengan penuh cinta dan kesabaran, mengingat sabar adalah sifat yang disukai Allah. Ia ingin mencatat kemajuannya di buku kerja.", q: "Berapa total kemajuan sulaman (dalam pecahan) yang berhasil diselesaikan pengrajin selama hari Senin dan Selasa?", opts: ["3/14", "2/7", "3/7", "1/7"], ans: 2 },
+            { lvl: 2, pts: 10, stimulus: "Pemerintah Provinsi Gorontalo terus berupaya menyelamatkan Danau Limboto dari pendangkalan parah. Luas danau yang menyusut mengancam ekosistem dan mata pencaharian nelayan ikan air tawar. Proyek pengerukan lumpur tahap satu berhasil menyelesaikan 3/5 dari target yang direncanakan. Namun, karena hujan deras yang membawa material sedimen baru dari hulu sungai, hasil kerja tersebut berkurang efektivitasnya sebesar 1/4 bagian dari target keseluruhan. Insinyur proyek harus menghitung sisa hasil pengerukan bersih yang tersisa.", q: "Berapa bagian bersih hasil pengerukan yang tersisa setelah dikurangi oleh efek sedimen hujan deras? (Hitung: 3/5 - 1/4)", opts: ["2/1", "7/20", "2/20", "8/20"], ans: 1 },
+            { lvl: 2, pts: 10, stimulus: "Ibu Maryam sedang mempersiapkan perayaan tradisi Walima. Ia berencana membuat hidangan ayam iloni dan kue-kue tradisional. Ia pergi ke pasar sentral Kota Gorontalo dan membeli beras ketan. Di toko pertama ia membeli 2 1/2 kg beras ketan. Karena merasa masih kurang, di toko kedua ia membeli lagi 1 3/4 kg. Tradisi menyajikan makanan terbaik untuk tamu adalah wujud memuliakan tamu yang diajarkan oleh Rasulullah SAW.", q: "Berapa total berat beras ketan (dalam kilogram) yang dibeli Ibu Maryam? (Ubah ke pecahan biasa lalu jumlahkan)", opts: ["3 1/4 kg", "4 1/4 kg", "4 1/2 kg", "3 3/4 kg"], ans: 1 },
+            { lvl: 2, pts: 10, stimulus: "Sebuah program santunan anak yatim digalang oleh remaja masjid. Dana yang terkumpul sangat banyak. Panitia sepakat bahwa 1/2 dari dana digunakan untuk beasiswa pendidikan, 1/3 digunakan untuk sembako bulanan, dan sisanya disimpan di kas masjid untuk keadaan darurat. Keputusan ini mencerminkan sikap moderasi dan perencanaan masa depan yang baik, sesuai prinsip ajaran Islam agar tidak boros namun tetap dermawan.", q: "Berapa pecahan dari total dana yang disimpan sebagai kas masjid (darurat)?", opts: ["1/6", "5/6", "2/5", "1/5"], ans: 0 },
+            { lvl: 2, pts: 10, stimulus: "Di dataran pertanian Paguyaman, lahan sawah dialiri oleh irigasi. Petani A membuka pintu air sehingga mengalirkan air sebanyak 4/5 liter per detik. Petani B di sawah sebelahnya hanya membutuhkan aliran air sebesar 1/2 liter per detik agar tanamannya tidak terendam. Petani A harus mengurangi debit airnya. Mereka saling berkomunikasi dengan baik, menunjukkan sikap tenggang rasa dan cinta kasih sesama manusia yang hidup bertetangga.", q: "Berapa selisih debit air antara yang dialirkan Petani A dan yang dibutuhkan Petani B?", opts: ["3/3 liter/detik", "2/5 liter/detik", "3/10 liter/detik", "5/10 liter/detik"], ans: 2 },
+            { lvl: 3, pts: 12, stimulus: "Bencana banjir bandang pernah melanda beberapa kecamatan di Gorontalo. Sebagai madrasah yang menanamkan nilai cinta tanah air dan empati, MTs Alkhairaat Tilamuta mengumpulkan donasi berupa beras. Total beras terkumpul adalah 20 1/2 kg. Panitia sosial sekolah mengemas beras tersebut ke dalam kantong-kantong plastik kecil yang masing-masing berisi 2 1/2 kg beras untuk dibagikan secara adil kepada warga yang paling terdampak. Pekerjaan ini dilakukan dengan penuh keikhlasan.", q: "Berapa banyak kantong plastik beras yang berhasil dibuat oleh panitia madrasah? (Operasi pembagian pecahan campuran)", opts: ["7 kantong", "8 kantong", "9 kantong", "10 kantong"], ans: 1 },
+            { lvl: 3, pts: 12, stimulus: "Dalam proyek konservasi hutan pesisir yang bertujuan menahan abrasi, Dinas Kehutanan memiliki anggaran pengadaan bibit bakau. Pada tahap pertama dana terserap sebesar 0,4 (atau 4/10) bagian. Tahap kedua menyerap dana sebesar 35% (atau 35/100). Sisa dana akan digunakan seluruhnya pada tahap ketiga (tahap evaluasi). Pemahaman numerasi lintas bentuk pecahan (desimal, persen, biasa) sangat penting agar laporan keuangan transparan, jujur, dan dapat dipertanggungjawabkan di hadapan Allah SWT.", q: "Berapa bagian (dalam bentuk pecahan biasa paling sederhana) dana yang dialokasikan untuk tahap ketiga?", opts: ["1/4", "3/4", "5/20", "1/5"], ans: 0 },
+            { lvl: 3, pts: 12, stimulus: "Tiga sahabat: Yusuf, Ibrahim, dan Musa, bergotong-royong membersihkan masjid menjelang salat Jumat. Yusuf mengepel 1/3 bagian lantai, Ibrahim mengepel 1/4 bagian, dan Musa mengepel sisanya. Namun di tengah pekerjaan, Musa sakit dan hanya sanggup menyelesaikan setengah dari bagian yang seharusnya ia kerjakan. Islam mengajarkan keringanan bagi yang sakit. Akhirnya Yusuf dan Ibrahim patungan menyelesaikan sisa lantai yang belum dipel tersebut secara merata.", q: "Bagian lantai yang seharusnya dikerjakan Musa awalnya adalah... (sebelum ia sakit)?", opts: ["5/12", "7/12", "1/12", "2/12"], ans: 0 }
+        ];
+
+        function e(id) { return document.getElementById(id); }
+        
+        function toggleModal(id) {
+            const el = e(id);
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                el.classList.add('flex');
+            } else {
+                el.classList.add('hidden');
+                el.classList.remove('flex');
+            }
+        }
+
+        function customAlert(title, message) {
+            e('alert-title').innerText = title;
+            e('alert-msg').innerText = message;
+            toggleModal('modal-alert');
+        }
+
+        function hideAllScreens() {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        }
+
+        function navTo(screenId) {
+            hideAllScreens();
+            stopAudio();
+            if (typeof stopBelajarBGM === 'function' && screenId !== 'belajar-screen') {
+                stopBelajarBGM();
+            }
+            e(screenId).classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        window.onload = () => {
+            setTimeout(() => {
+                navTo('cover-screen');
+                // Otomatis sinkronisasi struktur data soal ke Spreadsheet saat app dibuka
+                syncSoalToGAS();
+            }, 2000);
+        }
+
+        function login() {
+            const name = e('student-name').value.trim();
+            const cls = e('student-class').value;
+            if (!name || !cls) {
+                customAlert('Gagal Masuk', 'Mohon isi Nama Lengkap dan Kelasmu terlebih dahulu.');
+                return;
+            }
+            state.studentName = name;
+            state.studentClass = cls;
+            
+            e('display-name').innerText = name;
+            e('header-name').innerText = name;
+            e('header-class').innerText = cls;
+            e('header-initial').innerText = name.charAt(0).toUpperCase();
+            
+            navTo('guide-screen');
+            updateGuideUI();
+        }
+
+        function changeGuide(dir) {
+            e(`guide-${currentGuide}`).classList.add('hidden');
+            currentGuide += dir;
+            if (currentGuide < 1) currentGuide = 1;
+            if (currentGuide > 3) currentGuide = 3;
+            e(`guide-${currentGuide}`).classList.remove('hidden');
+            updateGuideUI();
+        }
+
+        function updateGuideUI() {
+            e('btn-guide-prev').classList.toggle('hidden', currentGuide === 1);
+            e('btn-guide-next').classList.toggle('hidden', currentGuide === 3);
+            e('btn-guide-finish').classList.toggle('hidden', currentGuide !== 3);
+        }
+
+        let isAudioPlaying = false;
+        let speech = new SpeechSynthesisUtterance();
+        speech.lang = 'id-ID';
+        speech.rate = 0.9;
+        
+        function toggleAudio() {
+            if (isAudioPlaying) {
+                stopAudio();
+            } else {
+                playCurrentMateriAudio();
+            }
+        }
+
+        function playCurrentMateriAudio() {
+            window.speechSynthesis.cancel();
+            const data = materiData[currentMateri];
+            
+            const textToRead = `${data.title}. 
+                                Konsep Inti. ${data.theory.replace(/\//g, ' per ')}. 
+                                Konteks Gorontalo. ${data.context.replace(/\//g, ' per ')}. 
+                                Nilai Karakter. ${data.kbc}`;
+            
+            speech.text = textToRead;
+            speech.onend = function() { resetAudioButton(); };
+
+            window.speechSynthesis.speak(speech);
+            isAudioPlaying = true;
+            
+            const btn = e('btn-audio');
+            if(btn) {
+                btn.innerHTML = '<i class="fas fa-stop mr-1"></i> Stop';
+                btn.classList.replace('bg-gold-500', 'bg-red-500');
+                btn.classList.replace('hover:bg-gold-400', 'hover:bg-red-600');
+                btn.classList.replace('text-emerald-900', 'text-white');
+            }
+        }
+
+        function stopAudio() {
+            window.speechSynthesis.cancel();
+            resetAudioButton();
+        }
+
+        function resetAudioButton() {
+            isAudioPlaying = false;
+            const btn = e('btn-audio');
+            if(btn) {
+                btn.innerHTML = '<i class="fas fa-volume-up mr-1"></i> Audio';
+                btn.classList.replace('bg-red-500', 'bg-gold-500');
+                btn.classList.replace('hover:bg-red-600', 'hover:bg-gold-400');
+                btn.classList.replace('text-white', 'text-emerald-900');
+            }
+        }
+
+        const bgmAudio = new Audio("https://assets.mixkit.co/music/preview/mixkit-relaxing-light-music-304.mp3");
+        bgmAudio.loop = true;
+        bgmAudio.volume = 0.25;
+
+        function playBelajarBGM() {
+            bgmAudio.play().catch(e => console.log("BGM autoplay dicegah browser:", e));
+        }
+
+        function stopBelajarBGM() {
+            bgmAudio.pause();
+        }
+
+        function updateDashboardUI() {
+            const pct = (state.belajarProgress / materiData.length) * 100;
+            e('progress-belajar').style.width = `${pct}%`;
+
+            const cBermain = e('card-bermain');
+            const iBermain = e('icon-bermain');
+            const sBermain = e('status-bermain');
+            if (state.bermainUnlocked) {
+                cBermain.classList.remove('opacity-70', 'border-gray-300');
+                cBermain.classList.add('border-gold-500');
+                iBermain.classList.replace('bg-gray-100', 'bg-gold-100');
+                iBermain.classList.replace('text-gray-400', 'text-gold-600');
+                sBermain.innerHTML = '<span class="inline-block bg-gold-100 text-gold-700 px-3 py-1 rounded-full text-xs font-bold"><i class="fas fa-unlock mr-1"></i> TERBUKA</span>';
+            }
+
+            const cBerlatih = e('card-berlatih');
+            const iBerlatih = e('icon-berlatih');
+            const sBerlatih = e('status-berlatih');
+            if (state.berlatihUnlocked) {
+                cBerlatih.classList.remove('opacity-70', 'border-gray-300');
+                cBerlatih.classList.add('border-blue-500');
+                iBerlatih.classList.replace('bg-gray-100', 'bg-blue-100');
+                iBerlatih.classList.replace('text-gray-400', 'text-blue-600');
+                sBerlatih.innerHTML = '<span class="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold"><i class="fas fa-unlock mr-1"></i> TERBUKA</span>';
+            }
+        }
+
+        function startBelajar() {
+            currentMateri = 0;
+            renderMateri();
+            navTo('belajar-screen');
+            playBelajarBGM();
+        }
+
+        function renderMateri() {
+            const data = materiData[currentMateri];
+            e('materi-counter').innerText = `${currentMateri + 1}/${materiData.length}`;
+            
+            const isAnswered = state.belajarProgress > currentMateri;
+            e('btn-materi-next').disabled = !isAnswered;
+            e('btn-materi-prev').disabled = currentMateri === 0;
+            
+            if (currentMateri === materiData.length - 1 && isAnswered) {
+                 e('btn-materi-next').innerText = "Selesai Belajar";
+            } else {
+                 e('btn-materi-next').innerText = "Selanjutnya";
+            }
+
+            const html = `
+                <div class="slide-up">
+                    <h2 class="text-2xl font-bold text-emerald-800 mb-6 border-b-2 border-emerald-200 pb-2">${data.title}</h2>
+                    <div class="mb-6">
+                        <h3 class="font-bold text-gray-700 mb-2 flex items-center"><i class="fas fa-book-reader text-emerald-500 mr-2"></i> Konsep Inti</h3>
+                        <p class="text-gray-600 bg-gray-50 p-4 rounded-xl border border-gray-200 leading-relaxed">${fm(data.theory)}</p>
+                    </div>
+                    <div class="mb-6">
+                        <h3 class="font-bold text-gray-700 mb-2 flex items-center"><i class="fas fa-map-marked-alt text-blue-500 mr-2"></i> Konteks Gorontalo</h3>
+                        <p class="text-gray-600 bg-blue-50 p-4 rounded-xl border border-blue-100 leading-relaxed">${fm(data.context)}</p>
+                    </div>
+                    <div class="mb-6">
+                        <h3 class="font-bold text-gray-700 mb-2 flex items-center"><i class="fas fa-heart text-red-500 mr-2"></i> Nilai Karakter (Cinta)</h3>
+                        <p class="text-gray-600 bg-rose-50 p-4 rounded-xl border border-rose-100 italic">${fm(data.kbc)}</p>
+                    </div>
+                    <div class="mb-8">
+                        <h3 class="font-bold text-gray-700 mb-2 flex items-center"><i class="fas fa-quran text-gold-500 mr-2"></i> Integrasi Ayat</h3>
+                        <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200 text-center">
+                            <p class="font-arabic text-2xl text-emerald-900 mb-3 leading-loose" dir="rtl">${data.quran.text}</p>
+                            <p class="text-sm text-gray-600">${data.quran.trans}</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-[0_0_15px_rgba(0,0,0,0.05)] border-2 border-dashed ${isAnswered ? 'border-emerald-500' : 'border-gold-400'}">
+                        <h4 class="font-bold text-lg text-gray-800 mb-2"><i class="fas fa-question-circle text-gold-500 mr-1"></i> Tantangan Pemahaman</h4>
+                        <p class="text-gray-600 mb-4">${fm(data.quiz.q)}</p>
+                        <div class="grid grid-cols-1 gap-2" id="mini-quiz-opts">
+                            ${data.quiz.options.map((opt, idx) => `
+                                <button onclick="answerMiniQuiz(${idx})" class="w-full text-left px-4 py-3 rounded-xl border-2 transition-all ${isAnswered ? (idx === data.quiz.correct ? 'bg-emerald-100 border-emerald-500 text-emerald-800 font-bold' : 'bg-gray-100 border-gray-200 text-gray-400') : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50'}">
+                                    ${String.fromCharCode(65+idx)}. ${fm(opt)}
+                                </button>
+                            `).join('')}
+                        </div>
+                        ${isAnswered ? '<div class="mt-4 text-emerald-600 font-bold text-center animate-pulse"><i class="fas fa-check-circle mr-1"></i> Luar biasa! Jawabanmu benar.</div>' : ''}
+                    </div>
+                </div>
+            `;
+            e('belajar-content-area').innerHTML = html;
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise([e('belajar-content-area')]).catch((err) => console.log(err.message));
+            }
+        }
+
+        function answerMiniQuiz(idx) {
+            if (state.belajarProgress > currentMateri) return;
+            
+            const data = materiData[currentMateri];
+            if (idx === data.quiz.correct) {
+                state.belajarProgress++;
+                if (state.belajarProgress === materiData.length) {
+                    state.bermainUnlocked = true;
+                }
+                updateDashboardUI();
+                renderMateri();
+            } else {
+                customAlert('Kurang Tepat', 'Jawabanmu belum tepat. Silakan baca ulang materi dan coba lagi ya!');
+            }
+        }
+
+        function changeMateri(dir) {
+            stopAudio();
+            if (dir === 1 && currentMateri === materiData.length - 1) {
+                navTo('main-menu');
+                if(state.bermainUnlocked) customAlert('Selamat!', 'Kamu telah menyelesaikan semua materi belajar. Menu BERMAIN sekarang TERBUKA!');
+                return;
+            }
+            currentMateri += dir;
+            renderMateri();
+            window.scrollTo(0,0);
+        }
+
+        function startBermain() {
+            if (!state.bermainUnlocked) {
+                customAlert('Menu Terkunci', 'Kamu harus menyelesaikan seluruh materi di menu BELAJAR terlebih dahulu.');
+                return;
+            }
+            state.bermainScore = 0;
+            currentBermain = 0;
+            navTo('bermain-screen');
+            renderBermain();
+        }
+
+        let tapSourceIndex = null;
+
+        function renderBermain() {
+            const data = bermainData[currentBermain];
+            e('bermain-counter').innerText = `${currentBermain + 1}/10`;
+            e('bermain-live-score').innerText = state.bermainScore;
+            e('bermain-feedback-bar').classList.add('hidden');
+            tapSourceIndex = null;
+            
+            let interactiveHtml = '';
+
+            if (data.type === 'mc') {
+                interactiveHtml = `
+                    <div class="grid gap-3 mt-6">
+                        ${data.opts.map((opt, idx) => `
+                            <button id="bopt-${idx}" onclick="answerBermain('mc', ${idx})" class="w-full text-left px-5 py-4 rounded-xl bg-white border-2 border-gray-200 hover:border-gold-400 hover:bg-gold-50 transition-all font-medium shadow-sm">
+                                ${String.fromCharCode(65+idx)}. ${fm(opt)}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (data.type === 'sort') {
+                interactiveHtml = `
+                    <div class="mt-6">
+                        <p class="text-sm text-gray-500 mb-3 font-medium bg-yellow-50 p-2 rounded border border-yellow-200"><i class="fas fa-hand-pointer mr-1"></i> Cara Bermain: Ketuk item untuk memilih, lalu ketuk kotak kosong (Target) secara berurutan sesuai instruksi soal!</p>
+                        <div class="flex flex-wrap gap-2 mb-4" id="sort-sources">
+                            ${data.opts.map((opt, idx) => `
+                                <div id="src-${idx}" onclick="selectSortSource(${idx})" class="px-4 py-3 bg-white border-2 border-gray-300 rounded-lg shadow-sm cursor-pointer font-bold text-emerald-800 transition-transform">
+                                    ${fm(opt)}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="grid gap-2" id="sort-targets">
+                            ${data.opts.map((_, idx) => `
+                                <div id="tgt-${idx}" onclick="placeSortTarget(${idx})" class="tap-target rounded-lg text-gray-400 font-medium w-full max-w-sm">
+                                    Urutan ke-${idx+1} (Ketuk disini)
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button onclick="checkSortAnswer()" class="mt-6 w-full py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-md">Kunci Jawaban <i class="fas fa-lock ml-1"></i></button>
+                    </div>
+                `;
+            }
+
+            const html = `
+                <div class="slide-up">
+                    <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-gold-400 mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-1 rounded">Literasi Numerasi</span>
+                            <span class="text-gray-400 text-sm"><i class="fas fa-book-open"></i> Stimulus</span>
+                        </div>
+                        <p class="text-gray-700 leading-relaxed text-justify indent-8">${fm(data.stimulus)}</p>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-emerald-900 mb-2">${fm(data.q)}</h3>
+                    ${interactiveHtml}
+                </div>
+            `;
+            e('bermain-content-area').innerHTML = html;
+
+            if (window.MathJax) {
+                MathJax.typesetPromise([e('bermain-content-area')]).catch((err) => console.log(err.message));
+            }
+        }
+
+        let currentSortPlacement = []; 
+        function selectSortSource(idx) {
+            const el = e(`src-${idx}`);
+            if (el.classList.contains('hidden')) return;
+            
+            document.querySelectorAll('#sort-sources div').forEach(d => d.classList.remove('tap-source-active'));
+            tapSourceIndex = idx;
+            el.classList.add('tap-source-active');
+        }
+
+        function placeSortTarget(targetIdx) {
+            if (tapSourceIndex === null) return;
+            
+            const targetEl = e(`tgt-${targetIdx}`);
+            if (targetEl.hasAttribute('data-filled')) {
+                const oldSrcIdx = targetEl.getAttribute('data-filled');
+                e(`src-${oldSrcIdx}`).classList.remove('hidden');
+            }
+
+            const optText = bermainData[currentBermain].opts[tapSourceIndex];
+            targetEl.innerHTML = `<div class="w-full h-full flex items-center justify-center font-bold text-emerald-900">${fm(optText)}</div>`;
+            targetEl.classList.replace('border-dashed', 'border-solid');
+            targetEl.classList.add('bg-emerald-50');
+            targetEl.setAttribute('data-filled', tapSourceIndex);
+            
+            currentSortPlacement[targetIdx] = tapSourceIndex;
+            
+            e(`src-${tapSourceIndex}`).classList.remove('tap-source-active');
+            e(`src-${tapSourceIndex}`).classList.add('hidden');
+            tapSourceIndex = null;
+
+            if (window.MathJax) {
+                MathJax.typesetPromise([targetEl]).catch((err) => console.log(err.message));
+            }
+        }
+
+        function checkSortAnswer() {
+            const data = bermainData[currentBermain];
+            if (currentSortPlacement.filter(x => x !== undefined).length !== data.opts.length) {
+                customAlert('Belum Lengkap', 'Silakan susun semua item terlebih dahulu!');
+                return;
+            }
+            
+            let isCorrect = true;
+            for(let i=0; i<data.correctOrder.length; i++){
+                if(currentSortPlacement[i] !== data.correctOrder[i]) isCorrect = false;
+            }
+
+            showBermainFeedback(isCorrect);
+        }
+
+        function answerBermain(type, val) {
+            const data = bermainData[currentBermain];
+            let isCorrect = false;
+
+            if (type === 'mc') {
+                for(let i=0; i<data.opts.length; i++) {
+                    e(`bopt-${i}`).disabled = true;
+                    if(i === data.ans) e(`bopt-${i}`).classList.add('bg-emerald-100', 'border-emerald-500');
+                    else if (i === val) e(`bopt-${i}`).classList.add('bg-red-100', 'border-red-500');
+                }
+                isCorrect = (val === data.ans);
+            }
+            
+            showBermainFeedback(isCorrect);
+        }
+
+        function showBermainFeedback(isCorrect) {
+            const fBar = e('bermain-feedback-bar');
+            const fText = e('bermain-feedback-text');
+            fBar.classList.remove('hidden');
+            
+            if (isCorrect) {
+                state.bermainScore += 10;
+                e('bermain-live-score').innerText = state.bermainScore;
+                fText.innerHTML = '<span class="text-emerald-600"><i class="fas fa-check-circle"></i> Tepat Sekali! +10 Poin</span>';
+            } else {
+                fText.innerHTML = '<span class="text-red-500"><i class="fas fa-times-circle"></i> Jawaban Kurang Tepat</span>';
+            }
+        }
+
+        function nextBermain() {
+            currentSortPlacement = [];
+            currentBermain++;
+            if (currentBermain >= bermainData.length) {
+                state.bermainCompleted = true;
+                state.berlatihUnlocked = true;
+                updateDashboardUI();
+                customAlert('Selesai Bermain!', `Luar biasa! Skor kamu: ${state.bermainScore}. Menu BERLATIH sekarang TERBUKA!`);
+                navTo('main-menu');
+            } else {
+                renderBermain();
+                window.scrollTo(0,0);
+            }
+        }
+
+        function startBerlatih() {
+            if (!state.berlatihUnlocked) {
+                customAlert('Menu Terkunci', 'Kamu harus menyelesaikan menu BERMAIN terlebih dahulu.');
+                return;
+            }
+            currentBerlatih = 0;
+            state.berlatihAnswers = new Array(10).fill(null);
+            navTo('berlatih-screen');
+            renderBerlatih();
+        }
+
+        function confirmExitBerlatih() {
+            navTo('main-menu');
+        }
+
+        function renderBerlatih() {
+            const data = berlatihData[currentBerlatih];
+            e('berlatih-counter').innerText = `${currentBerlatih + 1}/10`;
+            
+            const badge = e('berlatih-badge-level');
+            badge.innerText = `Level ${data.lvl} (${data.pts} Poin)`;
+            if(data.lvl===1) badge.className = 'text-xs px-2 py-1 rounded bg-green-500 text-white font-bold shadow';
+            if(data.lvl===2) badge.className = 'text-xs px-2 py-1 rounded bg-yellow-500 text-white font-bold shadow';
+            if(data.lvl===3) badge.className = 'text-xs px-2 py-1 rounded bg-red-500 text-white font-bold shadow';
+
+            e('btn-berlatih-prev').disabled = currentBerlatih === 0;
+            
+            if (currentBerlatih === berlatihData.length - 1) {
+                e('btn-berlatih-next').classList.add('hidden');
+                e('btn-berlatih-submit').classList.remove('hidden');
+            } else {
+                e('btn-berlatih-next').classList.remove('hidden');
+                e('btn-berlatih-submit').classList.add('hidden');
+            }
+
+            const savedAns = state.berlatihAnswers[currentBerlatih];
+
+            const html = `
+                <div class="slide-up">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-blue-200 mb-6 relative">
+                        <div class="absolute -top-3 -left-3 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold shadow">${currentBerlatih+1}</div>
+                        <p class="text-gray-700 leading-relaxed text-justify indent-8 mt-2">${fm(data.stimulus)}</p>
+                    </div>
+
+                    <h3 class="text-lg font-bold text-blue-900 mb-4">${fm(data.q)}</h3>
+                    
+                    <div class="space-y-3">
+                        ${data.opts.map((opt, idx) => `
+                            <label class="flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all ${savedAns === idx ? 'bg-blue-50 border-blue-500' : 'bg-white border-gray-200 hover:bg-gray-50'}">
+                                <input type="radio" name="ass-opt" value="${idx}" class="w-5 h-5 text-blue-600" onchange="selectBerlatihAns(${idx})" ${savedAns === idx ? 'checked' : ''}>
+                                <span class="ml-3 font-medium text-gray-800">${String.fromCharCode(65+idx)}. ${fm(opt)}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            e('berlatih-content-area').innerHTML = html;
+
+            if (window.MathJax) {
+                MathJax.typesetPromise([e('berlatih-content-area')]).catch((err) => console.log(err.message));
+            }
+        }
+
+        window.selectBerlatihAns = function(idx) {
+            state.berlatihAnswers[currentBerlatih] = idx;
+            renderBerlatih();
+        }
+
+        function navBerlatih(dir) {
+            currentBerlatih += dir;
+            renderBerlatih();
+            window.scrollTo(0,0);
+        }
+
+        function submitBerlatih() {
+            if (state.berlatihAnswers.includes(null)) {
+                customAlert('Belum Selesai', 'Masih ada soal yang belum dijawab. Periksa kembali!');
+                return;
+            }
+            
+            let totalScore = 0;
+            let l1Correct = 0, l2Correct = 0, l3Correct = 0;
+            let wrongCount = 0;
+
+            berlatihData.forEach((q, i) => {
+                if (state.berlatihAnswers[i] === q.ans) {
+                    totalScore += q.pts;
+                    if (q.lvl === 1) l1Correct++;
+                    if (q.lvl === 2) l2Correct++;
+                    if (q.lvl === 3) l3Correct++;
+                } else {
+                    wrongCount++;
+                }
+            });
+
+            state.berlatihScore = totalScore;
+            state.berlatihCompleted = true;
+            
+            e('rep-name').innerText = state.studentName;
+            e('rep-class').innerText = state.studentClass;
+            
+            const today = new Date();
+            const dateStr = `${today.getDate()}/${today.getMonth()+1}/${today.getFullYear()} ${today.getHours()}:${today.getMinutes()}`;
+            e('rep-date').innerText = dateStr;
+            
+            e('rep-bermain-score').innerText = state.bermainScore;
+            e('rep-berlatih-score').innerText = totalScore;
+            
+            e('rep-l1').innerText = `${l1Correct}/3 Benar`;
+            e('rep-l2').innerText = `${l2Correct}/4 Benar`;
+            e('rep-l3').innerText = `${l3Correct}/3 Benar`;
+            
+            let predikat = "PERLU BIMBINGAN";
+            let color = "text-red-600";
+            if(totalScore >= 85) { predikat = "SANGAT BAIK"; color = "text-emerald-600"; }
+            else if(totalScore >= 70) { predikat = "BAIK"; color = "text-blue-600"; }
+            else if(totalScore >= 60) { predikat = "CUKUP"; color = "text-yellow-600"; }
+            
+            const repPred = e('rep-predikat');
+            repPred.innerText = predikat;
+            repPred.className = `text-2xl font-bold ${color}`;
+
+            // Kirim data hasil ke Google Apps Script (GAS)
+            saveResultToGAS({
+                timestamp: dateStr,
+                studentName: state.studentName,
+                studentClass: state.studentClass,
+                bermainScore: state.bermainScore,
+                berlatihScore: totalScore,
+                correctCount: (l1Correct + l2Correct + l3Correct),
+                wrongCount: wrongCount,
+                detailAnswers: state.berlatihAnswers
+            });
+
+            navTo('report-screen');
+        }
+
+        // INTEGRASI GOOGLE APPS SCRIPT
+        function saveResultToGAS(payload) {
+            if (!GAS_URL || GAS_URL === "URL_GAS_ANDA_DISINI") {
+                console.warn("GAS URL belum dikonfigurasi.");
+                return;
+            }
+
+            payload.action = "saveResult";
+
+            fetch(GAS_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+            .then(() => console.log("Data hasil berhasil dikirim ke GAS."))
+            .catch(err => console.error("Gagal mengirim data ke GAS:", err));
+        }
+
+        function syncSoalToGAS() {
+            if (!GAS_URL || GAS_URL === "https://script.google.com/macros/s/AKfycbwVI-BAun44Dti0T1uln6_yeohM32VXnkrLIkdW5-s75VagzlIE4OXgNkiipu6bMx99Yw/exec") return;
+
+            const payload = {
+                action: "syncSoal",
+                bermainData: bermainData,
+                berlatihData: berlatihData
+            };
+
+            fetch(GAS_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+            .then(() => console.log("Otomatisasi lembar Data Soal berhasil disinkronkan."))
+            .catch(err => console.error("Gagal sinkronkan data soal:", err));
+        }
+
+        function downloadPDF() {
+            const element = document.getElementById('report-content');
+            const opt = {
+                margin:       0.5,
+                filename:     `Laporan_MPI_${state.studentName.replace(/\s+/g, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(opt).from(element).save().catch(err => {
+                console.error("Gagal generate PDF, mengalihkan ke mode cetak:", err);
+                window.print();
+            });
+        }
+    </script>
+</body>
+</html>
